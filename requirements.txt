@@ -6,3 +6,7 @@ schedule==1.2.0
 lxml==4.9.3
 pandas==2.1.4
 webdriver-manager==4.0.1
+twilio==8.10.0
+flask==3.0.0
+flask-cors==4.0.0
+smtplib-ssl==1.0.2

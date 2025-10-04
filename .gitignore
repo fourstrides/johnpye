@@ -75,3 +75,20 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+
+# Files with hardcoded test credentials (for security)
+src/diagnose_twilio_changes.py
+src/direct_sms_test.py
+src/test_exact_credentials.py
+src/validate_twilio_credentials.py
+src/diagnose_new_token.py
+src/final_sms_test.py
+src/fix_sms_setup.py
+src/test_auth_token_parsing.py
+src/test_sms_direct.py
+src/check_twilio_account.py
+src/show_auth_methods.py
+src/show_twilio_error.py
+src/test_new_token.py
+src/twilio_advanced_test.py
+src/test_account_sid_parsing.py

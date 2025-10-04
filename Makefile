@@ -22,8 +22,8 @@ NC = \033[0m
 .PHONY: help setup info check clean \
 		start stop restart status logs logs-tail test dev url \
 		sms-setup sms-update sms-fix \
-		sms-test sms-validate sms-direct sms-final sms-advanced \
-		sms-status sms-diagnose \
+		sms-test sms-validate sms-direct sms-final sms-advanced sms-notify \
+		sms-status sms-diagnose sms-delivery sms-troubleshoot \
 		sms-demo sms-help
 
 all: help
@@ -61,6 +61,7 @@ help: ## Show grouped command help
 	@echo "$(GREEN)✅ SMS Testing & Validation:$(NC)"
 	@echo "  $(YELLOW)sms-test$(NC)        Quick SMS notification test"
 	@echo "  $(YELLOW)sms-validate$(NC)    Validate Twilio credentials"
+	@echo "  $(YELLOW)sms-notify$(NC)      Send real auction notification SMS"
 	@echo "  $(YELLOW)sms-direct$(NC)      Direct SMS test (simple)"
 	@echo "  $(YELLOW)sms-final$(NC)       Final SMS test (comprehensive)"
 	@echo "  $(YELLOW)sms-advanced$(NC)    Advanced Twilio testing"
@@ -68,12 +69,14 @@ help: ## Show grouped command help
 	@echo "$(GREEN)📋 SMS Status & Diagnostics:$(NC)"
 	@echo "  $(YELLOW)sms-status$(NC)      Check SMS/Twilio account status"
 	@echo "  $(YELLOW)sms-diagnose$(NC)    Diagnose SMS problems"
+	@echo "  $(YELLOW)sms-delivery$(NC)    Check SMS delivery status"
+	@echo "  $(YELLOW)sms-troubleshoot$(NC) Troubleshoot delivery issues"
 	@echo ""
 	@echo "$(GREEN)🎬 SMS Demo & Help:$(NC)"
 	@echo "  $(YELLOW)sms-demo$(NC)        Demo SMS notifications"
 	@echo "  $(YELLOW)sms-help$(NC)        Show SMS command help"
 	@echo ""
-	@echo "$(BLUE)💡 Quick Start: make start && make sms-status$(NC)"
+	@echo "$(BLUE)💡 Quick Start: make start && make sms-notify$(NC)"
 
 #==============================================================================
 # SETUP & CONFIGURATION
@@ -233,6 +236,10 @@ sms-advanced: ## Advanced Twilio test
 	@echo "$(CYAN)🚀 Running advanced Twilio test...$(NC)"
 	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/twilio_advanced_test.py
 
+sms-notify: ## Send real auction notification SMS
+	@echo "$(CYAN)📢 Sending real auction notification...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/sms_notification_test.py
+
 #==============================================================================
 # SMS STATUS & DIAGNOSTICS
 #==============================================================================
@@ -244,6 +251,14 @@ sms-status: ## Check SMS/Twilio status
 sms-diagnose: ## Diagnose SMS issues
 	@echo "$(CYAN)🔍 Diagnosing SMS issues...$(NC)"
 	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/diagnose_sms.py
+
+sms-delivery: ## Check SMS delivery status
+	@echo "$(CYAN)📦 Checking SMS delivery status...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/check_sms_delivery.py
+
+sms-troubleshoot: ## Troubleshoot SMS delivery issues
+	@echo "$(CYAN)🔧 Running SMS troubleshooting tests...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/sms_troubleshoot.py
 
 #==============================================================================
 # SMS DEMO & HELP
@@ -265,6 +280,7 @@ sms-help: ## Show SMS help information
 	@echo "$(GREEN)✅ Testing & Validation:$(NC)"
 	@echo "  $(YELLOW)sms-test$(NC)        Quick SMS test"
 	@echo "  $(YELLOW)sms-validate$(NC)    Validate credentials"
+	@echo "  $(YELLOW)sms-notify$(NC)      Send real auction notification"
 	@echo "  $(YELLOW)sms-direct$(NC)      Direct SMS test"
 	@echo "  $(YELLOW)sms-final$(NC)       Comprehensive test"
 	@echo "  $(YELLOW)sms-advanced$(NC)    Advanced testing"
@@ -272,6 +288,8 @@ sms-help: ## Show SMS help information
 	@echo "$(GREEN)📋 Status & Diagnostics:$(NC)"
 	@echo "  $(YELLOW)sms-status$(NC)      Check account status"
 	@echo "  $(YELLOW)sms-diagnose$(NC)    Diagnose problems"
+	@echo "  $(YELLOW)sms-delivery$(NC)    Check delivery status"
+	@echo "  $(YELLOW)sms-troubleshoot$(NC) Troubleshoot delivery issues"
 	@echo ""
 	@echo "$(GREEN)🎬 Demo & Help:$(NC)"
 	@echo "  $(YELLOW)sms-demo$(NC)        Demo notifications"

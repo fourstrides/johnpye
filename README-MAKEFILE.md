@@ -6,12 +6,13 @@ This project includes a comprehensive Makefile for managing the dashboard and su
 
 ```bash
 # Quick Start (recommended)
-make start && make sms-status
+make start && make sms-notify
 
 # OR step by step
 make start          # Start the dashboard
 make status         # Check status  
 make sms-status     # Check SMS functionality
+make sms-notify     # Send real notification!
 make logs           # View logs
 make stop           # Stop services
 ```
@@ -53,6 +54,7 @@ The commands are organized into logical groups for better usability:
 |---------|-------------|
 | `make sms-test` | Quick SMS notification test |
 | `make sms-validate` | Validate Twilio credentials |
+| **`make sms-notify`** | **Send real auction notification SMS** |
 | `make sms-direct` | Direct SMS test (simple) |
 | `make sms-final` | Final SMS test (comprehensive) |
 | `make sms-advanced` | Advanced Twilio testing |
@@ -128,6 +130,7 @@ make status         # Check if still running
 # SMS workflow
 make sms-status     # Check Twilio account status
 make sms-validate   # Validate credentials
+make sms-notify     # Send real auction notification!
 make sms-test       # Quick SMS test
 make sms-demo       # Full notification demo
 ```

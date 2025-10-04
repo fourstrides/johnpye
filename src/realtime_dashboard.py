@@ -707,7 +707,7 @@ if __name__ == '__main__':
     print("📊 Dashboard will be available at: http://localhost:8081")
     print("✨ Features:")
     print("   • Real-time data from John Pye website")
-    print("   • Automatic updates every 5 minutes")
+    print("   • Automatic updates every 30 seconds for live bidding")
     print("   • Visual status indicators")
     print("   • SMS notifications for important events")
     print("⏹️  Press Ctrl+C to stop")

@@ -27,7 +27,7 @@ import pandas as pd
 from config_manager import ConfigManager
 from auction_item import AuctionItem
 from notification_manager import NotificationManager
-from bid_deduplicator import deduplicate_bids, enhance_bid_data
+from bid_deduplicator import deduplicate_bids, enhance_bid_data, deduplicate_watchlist
 from improved_login import ImprovedLoginHandler
 from johnpye_bid_parser import JohnPyeBidParser
 
@@ -291,6 +291,13 @@ class EnhancedAuctionTracker:
         except Exception as e:
             self.logger.error(f"Error getting watchlist: {e}")
         
+        # Deduplicate the watchlist items
+        original_count = len(watchlist_items)
+        watchlist_items = deduplicate_watchlist(watchlist_items)
+        
+        if original_count != len(watchlist_items):
+            self.logger.info(f"🔧 Watchlist deduplication: {original_count} → {len(watchlist_items)} items (removed {original_count - len(watchlist_items)} duplicates)")
+        
         self.logger.info(f"Total watchlist items found: {len(watchlist_items)}")
         return watchlist_items
     
@@ -332,16 +339,31 @@ class EnhancedAuctionTracker:
             if len(lines) < 2:
                 return None
             
+            # Get the first meaningful line as title
+            title = lines[0] if lines else 'Unknown Item'
+            
+            # Filter out non-item entries early
+            title_lower = title.lower()
+            skip_phrases = ['view item', 'winning', 'outbid', 'lost', 'won', 'ended', 'active', 'home', 'menu', 'login']
+            
+            if title_lower in skip_phrases or len(title.strip()) < 15:
+                return None
+            
+            # Extract lot number - only proceed if we have a valid lot number
+            lot_number = self.extract_lot_number(text)
+            if not lot_number or lot_number.startswith('UNKNOWN_'):
+                return None
+            
             watchlist_data = {
-                'title': lines[0] if lines else 'Unknown Item',
-                'lot_number': self.extract_lot_number(text),
+                'title': title,
+                'lot_number': lot_number,
                 'current_bid': self.extract_price(text, 'current'),
                 'end_time': self.extract_time(text),
                 'url': self.get_item_url(element)
             }
             
-            # Only return if we have essential data
-            if watchlist_data['title'] != 'Unknown Item' and watchlist_data['lot_number']:
+            # Only return if we have a meaningful title and lot number
+            if 'Lot' in title and lot_number:
                 return watchlist_data
                 
         except Exception as e:

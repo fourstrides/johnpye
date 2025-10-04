@@ -27,7 +27,7 @@ last_update = None
 tracker_status = {
     'running': False,
     'last_update': None,
-    'update_interval': 300,  # 5 minutes
+    'update_interval': 30,  # 30 seconds for live bidding
     'error': None
 }
 
@@ -141,7 +141,7 @@ MODERN_DASHBOARD_TEMPLATE = """
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h3 class="text-sm font-medium text-gray-700">Real-time Monitoring</h3>
-                        <p class="text-xs text-gray-500">Automatically checks for updates every 5 minutes</p>
+                        <p class="text-xs text-gray-500">Automatically checks for updates every 30 seconds for live bidding</p>
                     </div>
                     <button id="tracker-toggle" onclick="toggleTracker()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition">
                         <i class="fas fa-play mr-2"></i>Start Monitoring
@@ -305,7 +305,7 @@ MODERN_DASHBOARD_TEMPLATE = """
                     updateStats(response.data);
                     document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
                     if (trackerRunning) {
-                        nextUpdateTime = new Date(Date.now() + 300000); // 5 minutes
+                        nextUpdateTime = new Date(Date.now() + 30000); // 30 seconds for live bidding
                     }
                 })
                 .catch(error => {
@@ -523,7 +523,12 @@ def run_tracker_in_background():
                     'is_running': True
                 }
                 
-                with open('../data/realtime_status.json', 'w') as f:
+                # Use absolute path for data file
+                data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+                os.makedirs(data_dir, exist_ok=True)
+                data_file = os.path.join(data_dir, 'realtime_status.json')
+                
+                with open(data_file, 'w') as f:
                     json.dump(data, f, indent=2)
                 
                 last_update = datetime.now()
@@ -531,8 +536,8 @@ def run_tracker_in_background():
                 
                 logger.info(f"Updated data: {len(active_bids)} bids, {len(watchlist)} watchlist items")
                 
-                # Wait for next update (5 minutes)
-                for _ in range(300):  # 5 minutes in seconds
+                # Wait for next update (30 seconds for live bidding)
+                for _ in range(30):  # 30 seconds for live bidding
                     if not tracker_status['running']:
                         break
                     time.sleep(1)
@@ -600,8 +605,11 @@ def get_active_bids():
     """Get active bids data."""
     try:
         # Try to load realtime data
-        if os.path.exists('../data/realtime_status.json'):
-            with open('../data/realtime_status.json', 'r') as f:
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+        data_file = os.path.join(data_dir, 'realtime_status.json')
+        
+        if os.path.exists(data_file):
+            with open(data_file, 'r') as f:
                 data = json.load(f)
                 
             bids = data.get('active_bids', [])
@@ -633,8 +641,11 @@ def get_watchlist():
     """Get watchlist data."""
     try:
         # Try to load realtime data
-        if os.path.exists('../data/realtime_status.json'):
-            with open('../data/realtime_status.json', 'r') as f:
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+        data_file = os.path.join(data_dir, 'realtime_status.json')
+        
+        if os.path.exists(data_file):
+            with open(data_file, 'r') as f:
                 data = json.load(f)
                 
             items = data.get('watchlist_items', [])
@@ -668,7 +679,12 @@ def refresh_data():
                 'is_running': True
             }
             
-            with open('../data/realtime_status.json', 'w') as f:
+            # Use absolute path for data file
+            data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+            os.makedirs(data_dir, exist_ok=True)
+            data_file = os.path.join(data_dir, 'realtime_status.json')
+            
+            with open(data_file, 'w') as f:
                 json.dump(data, f, indent=2)
             
             return jsonify({

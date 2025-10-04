@@ -19,22 +19,105 @@ BLUE = \033[0;34m
 CYAN = \033[0;36m
 NC = \033[0m
 
-.PHONY: help start stop restart status clean logs setup info url
+.PHONY: help setup info check clean \
+		start stop restart status logs logs-tail test dev url \
+		sms-setup sms-update sms-fix \
+		sms-test sms-validate sms-direct sms-final sms-advanced \
+		sms-status sms-diagnose \
+		sms-demo sms-help
 
 all: help
 
-help: ## Show this help message
+#==============================================================================
+# HELP & INFORMATION
+#==============================================================================
+
+help: ## Show grouped command help
 	@echo "$(CYAN)John Pye Auction Tracker Management$(NC)"
 	@echo "$(CYAN)====================================$(NC)"
 	@echo ""
-	@echo "$(GREEN)Available commands:$(NC)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(YELLOW)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "$(GREEN)🔧 Setup & Configuration:$(NC)"
+	@echo "  $(YELLOW)setup$(NC)           Create directories and files"
+	@echo "  $(YELLOW)info$(NC)            Show project information"
+	@echo "  $(YELLOW)check$(NC)           Check system requirements"
+	@echo "  $(YELLOW)clean$(NC)           Clean up temporary files"
+	@echo ""
+	@echo "$(GREEN)📊 Dashboard Management:$(NC)"
+	@echo "  $(YELLOW)start$(NC)           Start the dashboard service"
+	@echo "  $(YELLOW)stop$(NC)            Stop all services"
+	@echo "  $(YELLOW)restart$(NC)         Restart all services"
+	@echo "  $(YELLOW)status$(NC)          Check service status"
+	@echo "  $(YELLOW)logs$(NC)            View recent logs"
+	@echo "  $(YELLOW)logs-tail$(NC)       Follow live logs"
+	@echo "  $(YELLOW)test$(NC)            Test dashboard API"
+	@echo "  $(YELLOW)dev$(NC)             Development mode with live logs"
+	@echo "  $(YELLOW)url$(NC)             Show dashboard URLs"
+	@echo ""
+	@echo "$(GREEN)📱 SMS Setup & Configuration:$(NC)"
+	@echo "  $(YELLOW)sms-setup$(NC)       Setup Twilio credentials"
+	@echo "  $(YELLOW)sms-update$(NC)      Update Twilio credentials"
+	@echo "  $(YELLOW)sms-fix$(NC)         Fix SMS setup issues"
+	@echo ""
+	@echo "$(GREEN)✅ SMS Testing & Validation:$(NC)"
+	@echo "  $(YELLOW)sms-test$(NC)        Quick SMS notification test"
+	@echo "  $(YELLOW)sms-validate$(NC)    Validate Twilio credentials"
+	@echo "  $(YELLOW)sms-direct$(NC)      Direct SMS test (simple)"
+	@echo "  $(YELLOW)sms-final$(NC)       Final SMS test (comprehensive)"
+	@echo "  $(YELLOW)sms-advanced$(NC)    Advanced Twilio testing"
+	@echo ""
+	@echo "$(GREEN)📋 SMS Status & Diagnostics:$(NC)"
+	@echo "  $(YELLOW)sms-status$(NC)      Check SMS/Twilio account status"
+	@echo "  $(YELLOW)sms-diagnose$(NC)    Diagnose SMS problems"
+	@echo ""
+	@echo "$(GREEN)🎬 SMS Demo & Help:$(NC)"
+	@echo "  $(YELLOW)sms-demo$(NC)        Demo SMS notifications"
+	@echo "  $(YELLOW)sms-help$(NC)        Show SMS command help"
+	@echo ""
+	@echo "$(BLUE)💡 Quick Start: make start && make sms-status$(NC)"
+
+#==============================================================================
+# SETUP & CONFIGURATION
+#==============================================================================
 
 setup: ## Create necessary directories and files
 	@echo "$(CYAN)🔧 Setting up project structure...$(NC)"
 	@mkdir -p $(DATA_DIR) $(LOGS_DIR) $(PID_DIR)
 	@touch $(DASHBOARD_LOG)
 	@echo "$(GREEN)✅ Project setup complete$(NC)"
+
+info: ## Show project information
+	@echo "$(CYAN)John Pye Auction Tracker$(NC)"
+	@echo "$(CYAN)========================$(NC)"
+	@echo "$(BLUE)Project Directory: $(PROJECT_DIR)$(NC)"
+	@echo "$(BLUE)Dashboard Port:    $(DASHBOARD_PORT)$(NC)"
+	@echo "$(BLUE)Update Interval:   30 seconds$(NC)"
+	@echo "$(BLUE)Data Directory:    $(DATA_DIR)$(NC)"
+	@echo "$(BLUE)Logs Directory:    $(LOGS_DIR)$(NC)"
+	@echo ""
+	@echo "$(GREEN)Features:$(NC)"
+	@echo "  • Real-time bid monitoring"
+	@echo "  • Watchlist tracking with deduplication"
+	@echo "  • Enhanced time extraction (precise remaining time)"
+	@echo "  • 30-second live updates for active bidding"
+	@echo "  • SMS notifications"
+	@echo "  • Web dashboard interface"
+
+check: ## Check system requirements
+	@echo "$(CYAN)🔍 Checking system requirements...$(NC)"
+	@command -v $(PYTHON) >/dev/null 2>&1 && echo "$(GREEN)✅ Python3 available$(NC)" || echo "$(RED)❌ Python3 not found$(NC)"
+	@command -v chromium-browser >/dev/null 2>&1 && echo "$(GREEN)✅ Chromium browser available$(NC)" || echo "$(RED)❌ Chromium browser not found$(NC)"
+	@command -v chromedriver >/dev/null 2>&1 && echo "$(GREEN)✅ ChromeDriver available$(NC)" || echo "$(RED)❌ ChromeDriver not found$(NC)"
+	@test -f .env && echo "$(GREEN)✅ .env file exists$(NC)" || echo "$(YELLOW)⚠️  .env file not found$(NC)"
+
+clean: ## Clean up logs and temporary files
+	@echo "$(CYAN)🧹 Cleaning up...$(NC)"
+	@rm -f $(LOGS_DIR)/*.log $(PID_DIR)/*.pid
+	@rm -f $(DATA_DIR)/*.json $(DATA_DIR)/*.csv
+	@echo "$(GREEN)✅ Cleanup complete$(NC)"
+
+#==============================================================================
+# DASHBOARD MANAGEMENT
+#==============================================================================
 
 start: setup ## Start the dashboard service
 	@echo "$(CYAN)🚀 Starting John Pye Auction Tracker Dashboard...$(NC)"
@@ -99,12 +182,6 @@ test: ## Test dashboard API
 	@echo "$(CYAN)🧪 Testing API endpoints...$(NC)"
 	@curl -s http://localhost:$(DASHBOARD_PORT)/api/tracker-status > /dev/null && echo "$(GREEN)✅ API responding$(NC)" || echo "$(RED)❌ API not responding$(NC)"
 
-clean: ## Clean up logs and temporary files
-	@echo "$(CYAN)🧹 Cleaning up...$(NC)"
-	@rm -f $(LOGS_DIR)/*.log $(PID_DIR)/*.pid
-	@rm -f $(DATA_DIR)/*.json $(DATA_DIR)/*.csv
-	@echo "$(GREEN)✅ Cleanup complete$(NC)"
-
 dev: ## Start in development mode with live logs
 	@echo "$(CYAN)🔧 Starting in development mode...$(NC)"
 	@$(MAKE) stop
@@ -116,26 +193,86 @@ url: ## Show dashboard URLs
 	@echo "$(BLUE)Local:   http://localhost:$(DASHBOARD_PORT)$(NC)"
 	@echo "$(BLUE)Network: http://`hostname -I | awk '{print $$1}'`:$(DASHBOARD_PORT)$(NC)"
 
-info: ## Show project information
-	@echo "$(CYAN)John Pye Auction Tracker$(NC)"
-	@echo "$(CYAN)========================$(NC)"
-	@echo "$(BLUE)Project Directory: $(PROJECT_DIR)$(NC)"
-	@echo "$(BLUE)Dashboard Port:    $(DASHBOARD_PORT)$(NC)"
-	@echo "$(BLUE)Update Interval:   30 seconds$(NC)"
-	@echo "$(BLUE)Data Directory:    $(DATA_DIR)$(NC)"
-	@echo "$(BLUE)Logs Directory:    $(LOGS_DIR)$(NC)"
-	@echo ""
-	@echo "$(GREEN)Features:$(NC)"
-	@echo "  • Real-time bid monitoring"
-	@echo "  • Watchlist tracking with deduplication"
-	@echo "  • Enhanced time extraction (precise remaining time)"
-	@echo "  • 30-second live updates for active bidding"
-	@echo "  • SMS notifications"
-	@echo "  • Web dashboard interface"
+#==============================================================================
+# SMS SETUP & CONFIGURATION
+#==============================================================================
 
-check: ## Check system requirements
-	@echo "$(CYAN)🔍 Checking system requirements...$(NC)"
-	@command -v $(PYTHON) >/dev/null 2>&1 && echo "$(GREEN)✅ Python3 available$(NC)" || echo "$(RED)❌ Python3 not found$(NC)"
-	@command -v chromium-browser >/dev/null 2>&1 && echo "$(GREEN)✅ Chromium browser available$(NC)" || echo "$(RED)❌ Chromium browser not found$(NC)"
-	@command -v chromedriver >/dev/null 2>&1 && echo "$(GREEN)✅ ChromeDriver available$(NC)" || echo "$(RED)❌ ChromeDriver not found$(NC)"
-	@test -f .env && echo "$(GREEN)✅ .env file exists$(NC)" || echo "$(YELLOW)⚠️  .env file not found$(NC)"
+sms-setup: ## Setup Twilio credentials
+	@echo "$(CYAN)🔧 Setting up Twilio credentials...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/setup_twilio.py
+
+sms-update: ## Update Twilio credentials
+	@echo "$(CYAN)🔄 Updating Twilio credentials...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) update_twilio_credentials.py
+
+sms-fix: ## Fix SMS setup issues
+	@echo "$(CYAN)🔧 Fixing SMS setup...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/fix_sms_setup.py
+
+#==============================================================================
+# SMS TESTING & VALIDATION
+#==============================================================================
+
+sms-test: ## Test SMS notifications
+	@echo "$(CYAN)📱 Testing SMS notifications...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/test_sms_simple.py
+
+sms-validate: ## Validate Twilio credentials
+	@echo "$(CYAN)✅ Validating Twilio credentials...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/validate_twilio_credentials.py
+
+sms-direct: ## Direct SMS test (simple)
+	@echo "$(CYAN)📲 Running direct SMS test...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/direct_sms_test.py
+
+sms-final: ## Final SMS test (comprehensive)
+	@echo "$(CYAN)🏁 Running final SMS test...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/final_sms_test.py
+
+sms-advanced: ## Advanced Twilio test
+	@echo "$(CYAN)🚀 Running advanced Twilio test...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/twilio_advanced_test.py
+
+#==============================================================================
+# SMS STATUS & DIAGNOSTICS
+#==============================================================================
+
+sms-status: ## Check SMS/Twilio status
+	@echo "$(CYAN)📋 Checking SMS/Twilio status...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/check_twilio_account.py
+
+sms-diagnose: ## Diagnose SMS issues
+	@echo "$(CYAN)🔍 Diagnosing SMS issues...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/diagnose_sms.py
+
+#==============================================================================
+# SMS DEMO & HELP
+#==============================================================================
+
+sms-demo: ## Demo SMS notifications
+	@echo "$(CYAN)🎬 Running SMS demo...$(NC)"
+	@cd $(PROJECT_DIR) && $(PYTHON) $(SRC_DIR)/demo_sms_notifications.py
+
+sms-help: ## Show SMS help information
+	@echo "$(CYAN)📱 SMS/Notification Commands$(NC)"
+	@echo "$(CYAN)=============================$(NC)"
+	@echo ""
+	@echo "$(GREEN)🔧 Setup & Configuration:$(NC)"
+	@echo "  $(YELLOW)sms-setup$(NC)       Setup Twilio credentials"
+	@echo "  $(YELLOW)sms-update$(NC)      Update Twilio credentials"
+	@echo "  $(YELLOW)sms-fix$(NC)         Fix SMS setup issues"
+	@echo ""
+	@echo "$(GREEN)✅ Testing & Validation:$(NC)"
+	@echo "  $(YELLOW)sms-test$(NC)        Quick SMS test"
+	@echo "  $(YELLOW)sms-validate$(NC)    Validate credentials"
+	@echo "  $(YELLOW)sms-direct$(NC)      Direct SMS test"
+	@echo "  $(YELLOW)sms-final$(NC)       Comprehensive test"
+	@echo "  $(YELLOW)sms-advanced$(NC)    Advanced testing"
+	@echo ""
+	@echo "$(GREEN)📋 Status & Diagnostics:$(NC)"
+	@echo "  $(YELLOW)sms-status$(NC)      Check account status"
+	@echo "  $(YELLOW)sms-diagnose$(NC)    Diagnose problems"
+	@echo ""
+	@echo "$(GREEN)🎬 Demo & Help:$(NC)"
+	@echo "  $(YELLOW)sms-demo$(NC)        Demo notifications"
+	@echo "  $(YELLOW)sms-help$(NC)        Show this help"

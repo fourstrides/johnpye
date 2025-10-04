@@ -204,21 +204,94 @@ class JohnPyeBidParser:
             return 'Active'
     
     def _extract_time_improved(self, text: str) -> str:
-        """Extract time with better patterns"""
+        """Extract exact remaining time with precise patterns"""
+        
+        # More comprehensive time patterns for exact timing
         time_patterns = [
-            r'(\d+\s*hours?)',           # "6 Hours"
-            r'(\d+\s*minutes?)',         # "30 Minutes"
-            r'(\d+\s*days?)',            # "2 Days"  
-            r'(\d{1,2}:\d{2})',          # "15:30"
-            r'(ENDS IN[^a-z]*[\d\s\w,]+)', # "ENDS IN: 6 Hours, 30 Minutes"
+            # Full "ENDS IN:" patterns with hours and minutes
+            r'ENDS IN[^\n]*?(\d+)\s*Hours?[^\n]*?(\d+)\s*Minutes?',
+            r'ENDS IN[^\n]*?(\d+)\s*Hour?[^\n]*?(\d+)\s*Minute?',
+            
+            # Just hours and minutes together
+            r'(\d+)\s*Hours?[^\n]*?(\d+)\s*Minutes?',
+            r'(\d+)\s*Hour?[^\n]*?(\d+)\s*Minute?',
+            
+            # Time in HH:MM format
+            r'(\d{1,2}):(\d{2})(?:\s*(?:remaining|left))?',
+            
+            # Individual time units
+            r'(\d+)\s*Hours?\s*(?:remaining|left)?',  # "6 Hours"
+            r'(\d+)\s*Hour?\s*(?:remaining|left)?',   # "1 Hour" 
+            r'(\d+)\s*Minutes?\s*(?:remaining|left)?', # "30 Minutes"
+            r'(\d+)\s*Minute?\s*(?:remaining|left)?',  # "1 Minute"
+            r'(\d+)\s*Days?\s*(?:remaining|left)?',   # "2 Days"
+            r'(\d+)\s*Day?\s*(?:remaining|left)?',    # "1 Day"
+            
+            # Generic ENDS IN patterns
+            r'ENDS IN[^\n]*?([\d\s\w:,]+)',
         ]
         
-        for pattern in time_patterns:
+        # First, try to find hours and minutes combinations
+        for pattern in time_patterns[:4]:  # First 4 patterns are for hours + minutes
+            match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+            if match:
+                if len(match.groups()) == 2:
+                    hours = match.group(1)
+                    minutes = match.group(2)
+                    return f"{hours}h {minutes}m"
+        
+        # Then try HH:MM format
+        hhmm_match = re.search(r'(\d{1,2}):(\d{2})(?:\s*(?:remaining|left))?', text, re.IGNORECASE)
+        if hhmm_match:
+            hours = int(hhmm_match.group(1))
+            minutes = int(hhmm_match.group(2))
+            if hours > 0:
+                return f"{hours}h {minutes}m"
+            else:
+                return f"{minutes}m"
+        
+        # Then try individual time units
+        for pattern in time_patterns[5:9]:  # Single unit patterns
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
-                return match.group(1).strip()
+                number = match.group(1)
+                if 'hour' in pattern.lower():
+                    return f"{number}h" if number != '1' else f"{number}h"
+                elif 'minute' in pattern.lower():
+                    return f"{number}m" if number != '1' else f"{number}m"
+                elif 'day' in pattern.lower():
+                    return f"{number}d" if number != '1' else f"{number}d"
         
-        return "Unknown"
+        # Special handling for "ENDS IN" patterns
+        ends_in_match = re.search(r'ENDS IN[^\n]*?([\d\s\w:,]+)', text, re.IGNORECASE | re.DOTALL)
+        if ends_in_match:
+            time_str = ends_in_match.group(1).strip()
+            # Parse complex time strings like "6 Hours, 30 Minutes"
+            hours_match = re.search(r'(\d+)\s*Hours?', time_str, re.IGNORECASE)
+            minutes_match = re.search(r'(\d+)\s*Minutes?', time_str, re.IGNORECASE)
+            
+            if hours_match and minutes_match:
+                return f"{hours_match.group(1)}h {minutes_match.group(1)}m"
+            elif hours_match:
+                return f"{hours_match.group(1)}h"
+            elif minutes_match:
+                return f"{minutes_match.group(1)}m"
+            else:
+                return time_str[:20]  # Return first 20 chars as fallback
+        
+        # Final fallback - look for any numbers followed by time units
+        fallback_patterns = [
+            r'(\d+)\s*h(?:ours?)?',
+            r'(\d+)\s*m(?:in(?:utes?)?)?',
+            r'(\d+)\s*d(?:ays?)?',
+        ]
+        
+        for pattern in fallback_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                return match.group(0)
+        
+        return "Time Unknown"
     
     def _extract_url(self, element) -> str:
         """Extract item URL"""
